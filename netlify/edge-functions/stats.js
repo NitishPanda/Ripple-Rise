@@ -1,5 +1,5 @@
 // netlify/edge-functions/stats.js
-import { getSupabase, getUser, json, cors, supabaseQuery } from './_shared.js';
+import { getSupabase, getUser, json, cors, supabaseQuery } from './utils.js';
 
 const NEG_CATS = ['timepass', 'waste', 'procrastinating'];
 
