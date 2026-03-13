@@ -1,0 +1,15 @@
+[[edge_functions]]
+  path = "/api/habits-config"
+  function = "habits-config"
+
+[[edge_functions]]
+  path = "/api/daily-habits"
+  function = "daily-habits"
+
+[[edge_functions]]
+  path = "/api/daily-tasks"
+  function = "daily-tasks"
+
+[[edge_functions]]
+  path = "/api/stats"
+  function = "stats"
