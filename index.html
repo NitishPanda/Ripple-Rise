@@ -425,9 +425,8 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 
 <script>
 // ── SUPABASE (auth only — no keys for data) ──────────────────
-const SUPA_URL = 'https://wzeluausuadlyekuzohd.supabase.co';
-const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6ZWx1YXVzdWFkbHlla3V6b2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxOTgzMDgsImV4cCI6MjA4ODc3NDMwOH0.Taqhac7uJsrl8wLbfjMeLL92dGUSvjx4NfvJHi-lxBM';
-const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
+const cfg = await fetch('/api/auth-config').then(r => r.json());
+const supa = supabase.createClient(cfg.url, cfg.anon);
 // NOTE: SUPA_ANON is only used for auth (login/signup) — all data
 // goes through /api/ edge functions which use the secret key server-side.
 
