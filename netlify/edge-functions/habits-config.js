@@ -1,5 +1,5 @@
 // netlify/edge-functions/habits-config.js
-import { getSupabase, getUser, json, cors, supabaseQuery } from './_shared.js';
+import { getSupabase, getUser, json, cors, supabaseQuery } from './utils.js';
 
 export default async (request) => {
   if (request.method === 'OPTIONS') return cors();
