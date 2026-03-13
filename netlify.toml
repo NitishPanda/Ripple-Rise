@@ -21,3 +21,8 @@
 [[edge_functions]]
   path = "/api/stats"
   function = "stats"
+
+  [[edge_functions]]
+  path = "/api/preferences"
+  function = "preferences"
+
