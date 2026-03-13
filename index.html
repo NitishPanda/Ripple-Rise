@@ -427,28 +427,9 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 
 <script>
 // ── SUPABASE (auth only — no keys for data) ──────────────────
-let supa;
-
-async function initSupabase() {
-  const cfg = await fetch('/api/auth-config').then(r => r.json());
-
-  supa = supabase.createClient(cfg.url, cfg.anon);
-
-  const { data:{ session } } = await supa.auth.getSession();
-
-  if (!session) {
-    document.getElementById('authScreen').style.display = 'flex';
-    document.getElementById('appScreen').style.display = 'none';
-  }
-
-  supa.auth.onAuthStateChange((event, session) => {
-    if (session) {
-      loadApp();
-    }
-  });
-}
-
-initSupabase();
+const SUPA_URL = 'https://wzeluausuadlyekuzohd.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6ZWx1YXVzdWFkbHlla3V6b2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxOTgzMDgsImV4cCI6MjA4ODc3NDMwOH0.Taqhac7uJsrl8wLbfjMeLL92dGUSvjx4NfvJHi-lxBM';
+const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
 // NOTE: SUPA_ANON is only used for auth (login/signup) — all data
 // goes through /api/ edge functions which use the secret key server-side.
 
@@ -633,58 +614,22 @@ function switchAuthTab(m) {
 function showMsg(id,msg) { const el=document.getElementById(id); el.textContent=msg; el.classList.add('show'); }
 
 async function handleEmailAuth() {
-  if (!supa) {
-    showMsg('authError','Loading... please wait');
-    return;
-  }
-
   const email = document.getElementById('authEmail').value.trim();
   const pw = document.getElementById('authPassword').value;
-
-  ['authError','authSuccess'].forEach(id =>
-    document.getElementById(id).classList.remove('show')
-  );
-
-  if (!email || !pw) {
-    showMsg('authError','Please fill in both fields.');
-    return;
-  }
-
-  if (authMode === 'signup') {
-    const { error } = await supa.auth.signUp({
-      email,
-      password: pw
-    });
-
-    if (error) {
-      showMsg('authError', error.message);
-      return;
-    }
-
+  ['authError','authSuccess'].forEach(id => document.getElementById(id).classList.remove('show'));
+  if (!email||!pw) { showMsg('authError','Please fill in both fields.'); return; }
+  if (authMode==='signup') {
+    const {error} = await supa.auth.signUp({email,password:pw});
+    if (error) { showMsg('authError',error.message); return; }
     showMsg('authSuccess','Account created! You are now signed in.');
   } else {
-    const { error } = await supa.auth.signInWithPassword({
-      email,
-      password: pw
-    });
-
-    if (error) {
-      showMsg('authError','Invalid email or password.');
-      return;
-    }
+    const {error} = await supa.auth.signInWithPassword({email,password:pw});
+    if (error) { showMsg('authError','Invalid email or password.'); return; }
   }
 }
 async function handleGoogleAuth() {
-  if (!supa) return alert('Loading...');
-
-  const { error } = await supa.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin
-    }
-  });
-
-  if (error) alert(error.message);
+  const {error} = await supa.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href}});
+  if (error) showMsg('authError', error.message);
 }
 async function handleSignOut() {
   await supa.auth.signOut();
