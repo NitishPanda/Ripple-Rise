@@ -1,6 +1,10 @@
+[build]
+  publish = "."
+  edge_functions = "netlify/edge-functions"
+
 [[edge_functions]]
-  path = "/api/habits-config"
-  function = "habits-config"
+  path = "/api/auth-config"
+  function = "auth-config"
 
 [[edge_functions]]
   path = "/api/daily-habits"
@@ -9,6 +13,10 @@
 [[edge_functions]]
   path = "/api/daily-tasks"
   function = "daily-tasks"
+
+[[edge_functions]]
+  path = "/api/habits-config"
+  function = "habits-config"
 
 [[edge_functions]]
   path = "/api/stats"
