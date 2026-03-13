@@ -198,6 +198,49 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
   .form-row{grid-template-columns:1fr;}
   .nav-tab{padding:7px 10px;font-size:12px;}
 }
+
+/* ── TASK LOG ── */
+.task-log-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.task-log-row:last-child{border-bottom:none;}
+.task-cat-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;font-family:'DM Mono',monospace;letter-spacing:0.5px;}
+.cat-productive  {background:#0e2010;color:var(--accent4);border:1px solid #1a4020;}
+.cat-necessity   {background:#0e1a2e;color:#6090e0;border:1px solid #1a3060;}
+.cat-emergency   {background:#2e1a08;color:#e09040;border:1px solid #5a3010;}
+.cat-timepass    {background:#1a1a2e;color:var(--muted);border:1px solid #2a2a4e;}
+.cat-waste       {background:#2e0e0e;color:var(--accent3);border:1px solid #5a1a1a;}
+.cat-procrastinating{background:#2a0e2a;color:#c060c0;border:1px solid #4a1a4a;}
+.task-log-info{flex:1;min-width:0;}
+.task-log-name{font-size:13px;font-weight:500;}
+.task-log-dur{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
+.task-log-del{background:transparent;border:1px solid #3a1a1a;color:var(--accent3);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.18s;}
+.task-log-del:hover{background:#2e0e0e;}
+
+/* Day productivity verdict */
+.day-verdict{border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.verdict-great   {background:#0e2010;border:1px solid #1a4020;color:var(--accent4);}
+.verdict-ok      {background:#1a1a10;border:1px solid #3a3a10;color:#c0c040;}
+.verdict-bad     {background:#2e1a08;border:1px solid #5a3010;color:#e09040;}
+.verdict-critical{background:#2e1208;border:1px solid #6a2010;color:#e06020;}
+.verdict-wasted  {background:#2e0808;border:1px solid #6a1010;color:var(--accent3);}
+
+/* Productivity score on calendar */
+.cal-cell .prod-dot{width:5px;height:5px;border-radius:50%;margin-top:2px;}
+
+/* Category selector */
+.cat-selector{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px;}
+.cat-btn{padding:8px 6px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.18s;text-align:center;}
+.cat-btn:hover{border-color:var(--muted);}
+.cat-btn.selected{border-color:currentColor;}
+.cat-btn.sel-productive  {color:var(--accent4);background:#0e2010;border-color:var(--accent4);}
+.cat-btn.sel-necessity   {color:#6090e0;background:#0e1a2e;border-color:#6090e0;}
+.cat-btn.sel-emergency   {color:#e09040;background:#2e1a08;border-color:#e09040;}
+.cat-btn.sel-timepass    {color:var(--muted);background:#1a1a2e;border-color:var(--muted);}
+.cat-btn.sel-waste       {color:var(--accent3);background:#2e0e0e;border-color:var(--accent3);}
+.cat-btn.sel-procrastinating{color:#c060c0;background:#2a0e2a;border-color:#c060c0;}
+
+/* Productivity summary bar */
+.prod-bar-wrap{height:8px;background:var(--border);border-radius:99px;overflow:hidden;display:flex;margin:8px 0;}
+.prod-bar-seg{height:100%;transition:width 0.4s ease;}
 </style>
 </head>
 <body>
@@ -247,9 +290,10 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showView('calendar')">📅 Calendar</button>
+    <button class="nav-tab" onclick="showView('tasks')">📋 Tasks</button>
     <button class="nav-tab" onclick="showView('trends')">📈 Trends</button>
     <button class="nav-tab" onclick="showView('redflags')">🚩 Red Flags</button>
-    <button class="nav-tab" onclick="showView('manage')">⚙️ My Habits</button>
+    <button class="nav-tab" onclick="showView('manage')">⚙️ Habits</button>
   </div>
 
   <div class="stats-row" id="statsRow"></div>
@@ -270,6 +314,9 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
       <div class="legend-item"><div class="legend-dot" style="background:#162010"></div>40–69%</div>
       <div class="legend-item"><div class="legend-dot" style="background:#0e2010"></div>70–99%</div>
       <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1a3010,#0e2818);border:1px solid #40c070"></div>100% 🔥</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent4);border-radius:50%"></div>Productive day</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e09040;border-radius:50%"></div>Unproductive</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent3);border-radius:50%"></div>Wasted</div>
     </div>
     <div class="day-panel" id="dayPanel">
       <div class="day-panel-header">
@@ -280,7 +327,47 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
     </div>
   </div>
 
-  <!-- TRENDS -->
+  <!-- TASKS VIEW -->
+  <div class="view" id="tasksView">
+    <!-- Date picker -->
+    <div class="bar-chart-wrap" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div class="bar-chart-title" style="margin-bottom:0">LOG ACTUAL TASKS</div>
+        <input type="date" id="taskDatePicker" class="form-input" style="width:auto;font-size:12px;padding:6px 10px;" onchange="renderTasksView()">
+      </div>
+      <!-- Verdict banner -->
+      <div id="dayVerdictBanner"></div>
+      <!-- Productivity bar -->
+      <div id="prodBarWrap"></div>
+      <!-- Add task form -->
+      <div class="form-field" style="margin-bottom:10px;">
+        <label>Task Name</label>
+        <input class="form-input" id="tName" placeholder="e.g. Watched YouTube, Completed report...">
+      </div>
+      <div class="form-row" style="margin-bottom:10px;">
+        <div class="form-field" style="margin-bottom:0">
+          <label>Duration (minutes)</label>
+          <input class="form-input" id="tDuration" type="number" min="1" max="600" placeholder="e.g. 45">
+        </div>
+      </div>
+      <div class="reason-lbl" style="margin-bottom:8px;">Category</div>
+      <div class="cat-selector" id="catSelector">
+        <button class="cat-btn" onclick="selectCat('productive')">✅ Productive</button>
+        <button class="cat-btn" onclick="selectCat('necessity')">🔧 Necessity</button>
+        <button class="cat-btn" onclick="selectCat('emergency')">🚨 Emergency</button>
+        <button class="cat-btn" onclick="selectCat('timepass')">😴 Timepass</button>
+        <button class="cat-btn" onclick="selectCat('waste')">🗑️ Waste of Time</button>
+        <button class="cat-btn" onclick="selectCat('procrastinating')">😬 Procrastinating</button>
+      </div>
+      <button class="form-btn form-btn-primary" style="width:100%" onclick="addTask()">+ Add Task</button>
+    </div>
+
+    <!-- Task list for selected day -->
+    <div class="bar-chart-wrap">
+      <div class="bar-chart-title">TODAY'S TASK LOG</div>
+      <div id="taskLogList"></div>
+    </div>
+  </div>
   <div class="view" id="trendsView">
     <div class="section-label">Last 30 days</div>
     <div class="bar-chart-wrap"><div class="bar-chart-title">DAILY COMPLETION %</div><div class="bar-chart" id="barChart"></div></div>
@@ -377,7 +464,7 @@ const EMOJIS=['🚶','💪','🪥','🚿','🍳','📚','🐸','🍱','💼','�
 // ── STATE ───────────────────────────────────────────────────
 let currentUser=null, data={}, habits=[], viewMonth=new Date().getMonth(), viewYear=new Date().getFullYear();
 let selectedDate=null, currentView='calendar', authMode='signin', editingHabitId=null, selectedEmoji='🎯';
-let modalHabitId=null, modalReasonType=null;
+let modalHabitId=null, modalReasonType=null, selectedCat=null;
 
 // ── AUTH ────────────────────────────────────────────────────
 function switchAuthTab(mode){
@@ -515,9 +602,19 @@ function renderCalendar(){
   for(let d=1;d<=dim;d++){
     const key=getDateKey(viewYear,viewMonth,d),pct=getPct(key),future=isFuture(viewYear,viewMonth,d);
     const cls=future?'future':getPctClass(pct),todayC=isToday(viewYear,viewMonth,d)?'today':'';
+    // Productivity verdict dot
+    let verdictDot='';
+    if(!future && data[key]){
+      const {negPct,total}=getDayMinutes(key);
+      if(total>0){
+        const dotCol=negPct>=60?'var(--accent3)':negPct>=40?'#e06020':negPct>=25?'#e09040':'var(--accent4)';
+        verdictDot=`<div class="prod-dot" style="width:5px;height:5px;border-radius:50%;background:${dotCol};margin-top:1px;"></div>`;
+      }
+    }
     h+=`<div class="cal-cell ${cls} ${todayC}" onclick="${future?'':'openDay('+viewYear+','+viewMonth+','+d+')'}">
       <div class="day-num">${d}${!future&&pct===100?'★':''}</div>
       ${!future&&pct!==null?`<div class="day-pct">${pct}%</div>`:''}
+      ${verdictDot}
     </div>`;
   }
   document.getElementById('calGrid').innerHTML=h;
@@ -737,11 +834,175 @@ function renderRedFlags(){
   document.getElementById('redflagsBlock').innerHTML=h;
 }
 
+// ── TASK LOG ─────────────────────────────────────────────────
+const CATS = {
+  productive:     {label:'✅ Productive',    cls:'cat-productive',    negative:false},
+  necessity:      {label:'🔧 Necessity',     cls:'cat-necessity',     negative:false},
+  emergency:      {label:'🚨 Emergency',     cls:'cat-emergency',     negative:false},
+  timepass:       {label:'😴 Timepass',      cls:'cat-timepass',      negative:true},
+  waste:          {label:'🗑️ Waste of Time', cls:'cat-waste',         negative:true},
+  procrastinating:{label:'😬 Procrastinating',cls:'cat-procrastinating',negative:true},
+};
+
+const NEG_CATS = ['timepass','waste','procrastinating'];
+
+function selectCat(cat){
+  selectedCat=cat;
+  document.querySelectorAll('.cat-btn').forEach(b=>{
+    b.className='cat-btn';
+    if(b.textContent.includes(CATS[cat].label.replace(/./u,'').trim())||b.getAttribute('onclick')===`selectCat('${cat}')`){
+      b.classList.add('sel-'+cat);
+    }
+  });
+  // simpler: re-render buttons
+  renderCatSelector(cat);
+}
+
+function renderCatSelector(active){
+  document.getElementById('catSelector').innerHTML=Object.entries(CATS).map(([k,v])=>
+    `<button class="cat-btn${active===k?' sel-'+k:''}" onclick="selectCat('${k}')">${v.label}</button>`
+  ).join('');
+}
+
+// Calc productive minutes for a day (habits + tasks)
+function getDayMinutes(key){
+  const dayData = data[key]||{};
+  let posMins=0, negMins=0, neuMins=0;
+
+  // Add completed habit minutes
+  habits.forEach(h=>{
+    if(dayData[h.id] && h.start && h.end){
+      const [sh,sm]=h.start.split(':').map(Number);
+      const [eh,em]=h.end.split(':').map(Number);
+      const mins=(eh*60+em)-(sh*60+sm);
+      if(mins>0) posMins+=mins;
+    }
+  });
+
+  // Add logged tasks
+  const tasks=dayData.__tasks||[];
+  tasks.forEach(t=>{
+    if(NEG_CATS.includes(t.category)) negMins+=t.duration;
+    else if(t.category==='necessity'||t.category==='emergency') neuMins+=t.duration;
+    else posMins+=t.duration;
+  });
+
+  const total=posMins+negMins+neuMins;
+  const negPct=total>0?Math.round(negMins/total*100):0;
+  return {posMins,negMins,neuMins,total,negPct};
+}
+
+function getDayVerdict(negPct, total){
+  if(total===0) return null;
+  if(negPct>=60) return {cls:'verdict-wasted',   icon:'💀', label:'WASTED DAY',      msg:`${negPct}% unproductive time — this day is gone.`};
+  if(negPct>=40) return {cls:'verdict-critical',  icon:'🔥', label:'CRITICAL FAILURE', msg:`${negPct}% unproductive — this needs urgent attention.`};
+  if(negPct>=25) return {cls:'verdict-bad',       icon:'⚠️', label:'UNPRODUCTIVE DAY', msg:`${negPct}% unproductive — you can do better.`};
+  if(negPct>0)   return {cls:'verdict-ok',        icon:'📊', label:'MOSTLY PRODUCTIVE',msg:`Only ${negPct}% unproductive. Keep tightening it.`};
+  return           {cls:'verdict-great',          icon:'🏆', label:'PRODUCTIVE DAY',   msg:'Zero wasted time logged. Excellent discipline!'};
+}
+
+function renderTasksView(){
+  // Set today as default date
+  const picker=document.getElementById('taskDatePicker');
+  if(!picker.value){
+    const n=new Date();
+    picker.value=getDateKey(n.getFullYear(),n.getMonth(),n.getDate());
+  }
+  const key=picker.value;
+  if(!data[key]) data[key]={};
+  if(!data[key].__tasks) data[key].__tasks=[];
+
+  renderCatSelector(selectedCat);
+
+  // Verdict banner
+  const {posMins,negMins,neuMins,total,negPct}=getDayMinutes(key);
+  const verdict=getDayVerdict(negPct,total);
+  const vBanner=document.getElementById('dayVerdictBanner');
+  if(verdict){
+    vBanner.innerHTML=`<div class="day-verdict ${verdict.cls}">${verdict.icon} <span><strong>${verdict.label}</strong> — ${verdict.msg}</span></div>`;
+  } else {
+    vBanner.innerHTML=`<div class="day-verdict" style="background:var(--surface);border:1px solid var(--border);color:var(--muted)">📝 No tasks logged yet. Start adding tasks below.</div>`;
+  }
+
+  // Productivity bar
+  const pw=document.getElementById('prodBarWrap');
+  if(total>0){
+    pw.innerHTML=`
+      <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:4px;">
+        <span>🟢 Productive: ${posMins}min</span>
+        <span>⚪ Neutral: ${neuMins}min</span>
+        <span>🔴 Negative: ${negMins}min</span>
+      </div>
+      <div class="prod-bar-wrap">
+        <div class="prod-bar-seg" style="width:${Math.round(posMins/total*100)}%;background:var(--accent4)"></div>
+        <div class="prod-bar-seg" style="width:${Math.round(neuMins/total*100)}%;background:#4090f0"></div>
+        <div class="prod-bar-seg" style="width:${Math.round(negMins/total*100)}%;background:var(--accent3)"></div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;">Total logged: ${total} min (${Math.round(total/60*10)/10} hrs)</div>`;
+  } else {
+    pw.innerHTML='';
+  }
+
+  // Task list
+  const tasks=data[key].__tasks||[];
+  const list=document.getElementById('taskLogList');
+  if(!tasks.length){
+    list.innerHTML=`<div style="color:var(--muted);font-size:13px;padding:10px 0;text-align:center;">No tasks logged for this day yet.</div>`;
+    return;
+  }
+  list.innerHTML=tasks.map((t,i)=>`
+    <div class="task-log-row">
+      <div>
+        <span class="task-cat-badge ${CATS[t.category]?.cls||'cat-productive'}">${CATS[t.category]?.label||t.category}</span>
+      </div>
+      <div class="task-log-info">
+        <div class="task-log-name">${t.name}</div>
+        <div class="task-log-dur">${t.duration} min</div>
+      </div>
+      <button class="task-log-del" onclick="deleteTask('${key}',${i})">✕</button>
+    </div>`).join('');
+}
+
+async function addTask(){
+  const name=document.getElementById('tName').value.trim();
+  const dur=parseInt(document.getElementById('tDuration').value);
+  const key=document.getElementById('taskDatePicker').value||getDateKey(new Date().getFullYear(),new Date().getMonth(),new Date().getDate());
+  if(!name){alert('Please enter a task name.');return;}
+  if(!dur||dur<1){alert('Please enter a valid duration in minutes.');return;}
+  if(!selectedCat){alert('Please select a category.');return;}
+  if(!data[key]) data[key]={};
+  if(!data[key].__tasks) data[key].__tasks=[];
+  data[key].__tasks.push({name,duration:dur,category:selectedCat,addedAt:new Date().toISOString()});
+  document.getElementById('tName').value='';
+  document.getElementById('tDuration').value='';
+  selectedCat=null;
+  await saveToDB();
+  renderTasksView();
+  renderCalendar();
+  renderStats();
+}
+
+async function deleteTask(key,idx){
+  if(!confirm('Remove this task?'))return;
+  data[key].__tasks.splice(idx,1);
+  await saveToDB();
+  renderTasksView();
+  renderCalendar();
+  renderStats();
+}
+
 // ── VIEW SWITCHER ────────────────────────────────────────────
+const VIEWS=['calendar','tasks','trends','redflags','manage'];
 function showView(v){
   currentView=v;
-  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',['calendar','trends','redflags','manage'][i]===v));
-  ['calendarView','trendsView','redflagsView','manageView'].forEach((id,i)=>document.getElementById(id).classList.toggle('active',['calendar','trends','redflags','manage'][i]===v));
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',VIEWS[i]===v));
+  ['calendarView','tasksView','trendsView','redflagsView','manageView'].forEach((id,i)=>document.getElementById(id).classList.toggle('active',VIEWS[i]===v));
+  if(v==='tasks'){
+    const n=new Date();
+    const picker=document.getElementById('taskDatePicker');
+    if(!picker.value) picker.value=getDateKey(n.getFullYear(),n.getMonth(),n.getDate());
+    renderTasksView();
+  }
   if(v==='trends')renderTrends();
   if(v==='redflags')renderRedFlags();
   if(v==='manage')renderManage();
@@ -755,3 +1016,4 @@ function showView(v){
 </script>
 </body>
 </html>
+
