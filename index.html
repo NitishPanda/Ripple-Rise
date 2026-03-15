@@ -3,9 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f0c040">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Habit Tracker">
+<link rel="manifest" href="/manifest.json">
 <title>Habit Tracker</title>
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=2">
-<link rel="shortcut icon" href="/favicon.png?v=2">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -76,7 +79,8 @@ body::before{
 .auth-logo p{color:var(--muted);font-size:13px;margin-top:6px;}
 .auth-tabs{display:flex;background:var(--surface);border-radius:8px;padding:3px;margin-bottom:22px;}
 .auth-tab{flex:1;padding:8px;border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;border-radius:6px;cursor:pointer;transition:all 0.2s;}
-.auth-tab.active{background:var(--accent);color:[data-theme="dark"] ? #000 : #fff;}
+.auth-tab.active{background:var(--accent);color:#000;}
+[data-theme="light"] .auth-tab.active{color:#fff;}
 [data-theme="dark"] .auth-tab.active{color:#000;}
 [data-theme="light"] .auth-tab.active{color:#fff;}
 .auth-field{margin-bottom:14px;}
@@ -354,6 +358,122 @@ body::before{
 *, *::before, *::after { transition: background-color 0.25s ease, border-color 0.25s ease, color 0.15s ease; }
 .cal-cell, .bar, .prod-bar-seg { transition: background 0.25s ease, border-color 0.25s ease, height 0.4s cubic-bezier(.4,0,.2,1); }
 
+/* ── PRESSURE PANEL ── */
+.pressure-fab{
+  position:fixed;bottom:24px;right:24px;z-index:150;
+  width:56px;height:56px;border-radius:50%;border:none;
+  background:linear-gradient(135deg,#e05050,#f0c040);
+  color:#000;font-size:22px;cursor:pointer;
+  box-shadow:0 4px 20px rgba(240,100,50,0.5);
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.25s cubic-bezier(.4,0,.2,1);
+  transform:scale(1);
+}
+.pressure-fab:hover{transform:scale(1.1);}
+.pressure-fab.sprint-active{
+  background:linear-gradient(135deg,#e05050,#c03030);
+  animation:fab-pulse 2s ease-in-out infinite;
+}
+.pressure-fab .fab-countdown{
+  font-family:'DM Mono',monospace;font-size:11px;font-weight:700;
+  line-height:1;display:none;color:#fff;
+}
+.pressure-fab.sprint-active .fab-icon{display:none;}
+.pressure-fab.sprint-active .fab-countdown{display:block;}
+@keyframes fab-pulse{0%,100%{box-shadow:0 4px 20px rgba(224,80,80,0.5);}50%{box-shadow:0 4px 32px rgba(224,80,80,0.9);}}
+
+.pressure-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:151;
+  opacity:0;pointer-events:none;transition:opacity 0.25s;backdrop-filter:blur(3px);
+}
+[data-theme="light"] .pressure-overlay{background:rgba(0,0,0,0.3);}
+.pressure-overlay.open{opacity:1;pointer-events:all;}
+
+.pressure-panel{
+  position:fixed;bottom:90px;right:24px;z-index:152;
+  width:340px;max-height:85vh;overflow-y:auto;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:20px;
+  box-shadow:0 16px 48px var(--shadow);
+  transform:translateY(20px) scale(0.96);opacity:0;pointer-events:none;
+  transition:all 0.25s cubic-bezier(.4,0,.2,1);
+}
+.pressure-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:all;}
+
+.pp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.pp-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;
+  background:linear-gradient(90deg,#e05050,#f0c040);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.pp-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:4px;}
+
+.pp-tabs{display:flex;background:var(--surface);border-radius:8px;padding:3px;margin-bottom:16px;gap:2px;}
+.pp-tab{flex:1;padding:6px 4px;border:none;background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;border-radius:6px;cursor:pointer;transition:all 0.2s;text-align:center;}
+.pp-tab.active{background:var(--accent);color:#000;}
+[data-theme="light"] .pp-tab.active{color:#fff;}
+
+.pp-section{display:none;}.pp-section.active{display:block;}
+
+/* Pressure mode timer */
+.sprint-timer-display{
+  text-align:center;padding:20px 0 16px;
+}
+.sprint-time{
+  font-family:'Bebas Neue',sans-serif;font-size:64px;letter-spacing:4px;line-height:1;
+  color:var(--accent);transition:color 0.3s;
+}
+.sprint-time.urgent{color:var(--accent3);animation:tick-urgent 1s ease-in-out infinite;}
+@keyframes tick-urgent{0%,100%{opacity:1;}50%{opacity:0.5;}}
+.sprint-task-display{
+  font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px;
+  font-style:italic;padding:0 8px;line-height:1.5;min-height:20px;
+}
+.sprint-task-display.has-task{color:var(--text);font-style:normal;font-weight:500;}
+.sprint-duration-row{display:flex;gap:6px;margin-bottom:12px;}
+.sprint-dur-btn{flex:1;padding:9px 6px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;transition:all 0.18s;text-align:center;}
+.sprint-dur-btn:hover{border-color:var(--accent);color:var(--accent);}
+.sprint-dur-btn.active{background:var(--accent);color:#000;border-color:var(--accent);}
+[data-theme="light"] .sprint-dur-btn.active{color:#fff;}
+.sprint-task-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 12px;outline:none;margin-bottom:12px;transition:border-color 0.2s;}
+.sprint-task-input:focus{border-color:var(--accent);}
+.sprint-start-btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#e05050,#f0c040);color:#000;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;transition:all 0.2s;}
+.sprint-start-btn:hover{filter:brightness(1.1);}
+.sprint-controls{display:flex;gap:8px;margin-top:12px;}
+.sprint-ctrl-btn{flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.sprint-ctrl-btn:hover{border-color:var(--accent);}
+.sprint-ctrl-btn.stop{border-color:var(--accent3);color:var(--accent3);}
+.sprint-ctrl-btn.stop:hover{background:var(--miss-neg-bg);}
+.sprint-progress-bar{height:4px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:16px;}
+.sprint-progress-fill{height:100%;background:linear-gradient(90deg,#e05050,#f0c040);border-radius:99px;transition:width 1s linear;}
+
+/* Focus task */
+.focus-task-wrap{margin-bottom:14px;}
+.focus-task-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+.focus-task-display{background:var(--surface);border:2px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:none;}
+.focus-task-display.show{display:block;}
+.focus-task-text{font-size:14px;font-weight:600;color:var(--accent);line-height:1.4;}
+.focus-task-date{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;}
+.focus-task-done{display:flex;align-items:center;gap:8px;margin-top:10px;}
+.focus-done-check{width:20px;height:20px;border-radius:5px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.18s;}
+.focus-done-check.checked{background:var(--accent4);border-color:var(--accent4);}
+.focus-done-label{font-size:12px;color:var(--muted);cursor:pointer;}
+.focus-done-check.checked + .focus-done-label{text-decoration:line-through;color:var(--accent4);}
+
+/* Insights */
+.insight-pattern-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;}
+.ipc-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.ipc-icon{font-size:20px;}
+.ipc-title{font-size:13px;font-weight:600;}
+.ipc-body{font-size:12px;color:var(--muted);line-height:1.6;}
+.ipc-stat{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);margin-top:6px;}
+
+/* Checkin */
+.checkin-question{font-size:13px;font-weight:500;margin-bottom:12px;line-height:1.5;}
+.checkin-options{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.checkin-opt{padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;text-align:left;transition:all 0.18s;}
+.checkin-opt:hover{border-color:var(--accent);background:var(--surface);}
+.checkin-opt.selected{border-color:var(--accent2);background:var(--miss-legit-bg);color:var(--accent2);}
+.checkin-response{background:var(--surface);border-left:3px solid var(--accent2);border-radius:0 8px 8px 0;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.6;display:none;}
+.checkin-response.show{display:block;}
+
 @media(max-width:600px){
   .stats-row{grid-template-columns:repeat(2,1fr);}
   .verdict-grid{grid-template-columns:repeat(3,1fr);}
@@ -361,6 +481,8 @@ body::before{
   .form-row{grid-template-columns:1fr;}
   .nav-tab{padding:7px 8px;font-size:11px;}
   .cat-selector{grid-template-columns:1fr 1fr;}
+  .pressure-panel{width:calc(100vw - 32px);right:16px;bottom:80px;}
+  .pressure-fab{bottom:16px;right:16px;}
 }
 </style>
 </head>
@@ -530,6 +652,33 @@ body::before{
 </div>
 </div>
 
+<!-- SPRINT REVIEW MODAL -->
+<div class="modal-overlay" id="sprintReviewModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-title">⚡ Sprint Complete!</div>
+    <div class="modal-sub" id="sprintReviewSub"></div>
+
+    <div style="background:var(--surface);border-radius:10px;padding:14px;margin-bottom:16px;text-align:center;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--accent);letter-spacing:2px;" id="sprintReviewTask"></div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px;" id="sprintReviewDur"></div>
+    </div>
+
+    <div class="reason-lbl" style="margin-bottom:10px;">Did you actually do the work? Pick a category:</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;" id="sprintCatGrid"></div>
+
+    <div class="form-field" style="margin-bottom:14px;">
+      <label>Task name (edit if needed)</label>
+      <input class="form-input" id="sprintReviewName">
+    </div>
+
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="closeSprintReview(false)">Skip — don't log</button>
+      <button class="modal-btn modal-btn-save" id="sprintReviewSaveBtn" onclick="saveSprintReview()" disabled style="opacity:0.5;">Log Task</button>
+    </div>
+  </div>
+</div>
+
 <!-- MISS MODAL -->
 <div class="modal-overlay" id="missModal">
   <div class="modal">
@@ -546,6 +695,91 @@ body::before{
       <button class="modal-btn modal-btn-cancel" onclick="closeMissModal()">Cancel</button>
       <button class="modal-btn modal-btn-save" onclick="saveMissReason()">Save</button>
     </div>
+  </div>
+</div>
+
+<!-- ── PRESSURE FAB ── -->
+<button class="pressure-fab" id="pressureFab" onclick="togglePressurePanel()" title="Pressure Mode">
+  <span class="fab-icon">⚡</span>
+  <span class="fab-countdown" id="fabCountdown"></span>
+</button>
+<div class="pressure-overlay" id="pressureOverlay" onclick="togglePressurePanel()"></div>
+<div class="pressure-panel" id="pressurePanel">
+  <div class="pp-header">
+    <div class="pp-title">⚡ PRESSURE MODE</div>
+    <button class="pp-close" onclick="togglePressurePanel()">✕</button>
+  </div>
+  <div class="pp-tabs">
+    <button class="pp-tab active" onclick="showPPTab('sprint')">🔥 Sprint</button>
+    <button class="pp-tab" onclick="showPPTab('focus')">🎯 Focus</button>
+    <button class="pp-tab" onclick="showPPTab('insights')">🧠 Insights</button>
+    <button class="pp-tab" onclick="showPPTab('checkin')">💬 Check-in</button>
+  </div>
+
+  <!-- SPRINT TAB -->
+  <div class="pp-section active" id="ppSprint">
+    <div class="sprint-progress-bar"><div class="sprint-progress-fill" id="sprintProgressFill" style="width:0%"></div></div>
+    <div class="sprint-timer-display">
+      <div class="sprint-time" id="sprintTimerDisplay">25:00</div>
+    </div>
+    <div class="sprint-task-display" id="sprintTaskDisplay"></div>
+    <div id="sprintSetup">
+      <input class="sprint-task-input" id="sprintTaskInput" placeholder="What are you sprinting on? (optional)">
+      <div class="sprint-duration-row">
+        <button class="sprint-dur-btn active" onclick="setSprintDur(25,this)">25 min</button>
+        <button class="sprint-dur-btn" onclick="setSprintDur(45,this)">45 min</button>
+        <button class="sprint-dur-btn" onclick="setSprintDur(60,this)">60 min</button>
+        <button class="sprint-dur-btn" onclick="setSprintDur(90,this)">90 min</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;">
+        <input type="number" id="customSprintMins" min="1" max="180" placeholder="Custom mins" class="sprint-task-input" style="margin-bottom:0;flex:1;text-align:center;" oninput="setCustomSprintDur(this)">
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap;">min</span>
+      </div>
+      <button class="sprint-start-btn" onclick="startSprint()">▶ START SPRINT</button>
+    </div>
+    <div class="sprint-controls" id="sprintControls" style="display:none">
+      <button class="sprint-ctrl-btn" id="sprintPauseBtn" onclick="toggleSprintPause()">⏸ Pause</button>
+      <button class="sprint-ctrl-btn stop" onclick="stopSprint()">✕ Stop</button>
+    </div>
+  </div>
+
+  <!-- FOCUS TAB -->
+  <div class="pp-section" id="ppFocus">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;">Today's One Must-Finish</div>
+    <div class="focus-task-display" id="focusTaskDisplay">
+      <div class="focus-task-text" id="focusTaskText"></div>
+      <div class="focus-task-date" id="focusTaskDate"></div>
+      <div class="focus-task-done">
+        <div class="focus-done-check" id="focusDoneCheck" onclick="toggleFocusDone()"></div>
+        <span class="focus-done-label" onclick="toggleFocusDone()">Mark as done</span>
+      </div>
+    </div>
+    <div class="form-field">
+      <input class="form-input" id="focusTaskInput" placeholder="If only one thing gets done today, it is...">
+    </div>
+    <button class="form-btn form-btn-primary" style="width:100%;margin-bottom:12px;" onclick="saveFocusTask()">Set Focus Task</button>
+    <div class="insight-pattern-card" style="margin-bottom:0;">
+      <div class="ipc-header"><div class="ipc-icon">💡</div><div class="ipc-title">Why this works</div></div>
+      <div class="ipc-body">Your brain needs a single clear target. One committed task reduces hidden background pressure that causes irritation throughout the day. Everything else is bonus.</div>
+    </div>
+  </div>
+
+  <!-- INSIGHTS TAB -->
+  <div class="pp-section" id="ppInsights">
+    <div id="insightsContent"></div>
+  </div>
+
+  <!-- CHECKIN TAB -->
+  <div class="pp-section" id="ppCheckin">
+    <div class="checkin-question">How are you feeling right now?</div>
+    <div class="checkin-options">
+      <button class="checkin-opt" onclick="selectCheckin(this,'overloaded')">🔥 Overloaded — too much at once</button>
+      <button class="checkin-opt" onclick="selectCheckin(this,'procrastinating')">😴 Avoiding something important</button>
+      <button class="checkin-opt" onclick="selectCheckin(this,'irritable')">😤 Irritable / low patience</button>
+      <button class="checkin-opt" onclick="selectCheckin(this,'unfocused')">🌀 Scattered / can't focus</button>
+      <button class="checkin-opt" onclick="selectCheckin(this,'good')">✅ Good — just checking in</button>
+    </div>
+    <div class="checkin-response" id="checkinResponse"></div>
   </div>
 </div>
 
@@ -749,6 +983,7 @@ supa.auth.onAuthStateChange(async(event,session)=>{
     await loadThemeFromDB();
     await loadHabits();
     await ensureMonthLoaded(viewYear,viewMonth);
+    requestNotificationPermission();
     renderAll();
   }
 });
@@ -1094,6 +1329,447 @@ function showView(v){
   const{data:{session}}=await supa.auth.getSession();
   if(!session){document.getElementById('authScreen').style.display='flex';document.getElementById('appScreen').style.display='none';}
 })();
+
+// ── PRESSURE PANEL ───────────────────────────────────────────
+let ppOpen = false;
+function togglePressurePanel() {
+  ppOpen = !ppOpen;
+  document.getElementById('pressurePanel').classList.toggle('open', ppOpen);
+  document.getElementById('pressureOverlay').classList.toggle('open', ppOpen);
+  if (ppOpen) renderInsights();
+}
+
+function showPPTab(tab) {
+  document.querySelectorAll('.pp-tab').forEach((t,i) => t.classList.toggle('active', ['sprint','focus','insights','checkin'][i] === tab));
+  document.querySelectorAll('.pp-section').forEach((s,i) => s.classList.toggle('active', ['ppSprint','ppFocus','ppInsights','ppCheckin'][i] === 'pp'+tab.charAt(0).toUpperCase()+tab.slice(1)));
+  if (tab === 'insights') renderInsights();
+  if (tab === 'focus') renderFocusTask();
+}
+
+// ── SPRINT ───────────────────────────────────────────────────
+let sprintDuration = 25; // minutes
+let sprintTotal = 0; // seconds
+let sprintRemaining = 0;
+let sprintInterval = null;
+let sprintPaused = false;
+let sprintTask = '';
+
+function setSprintDur(mins, btn) {
+  sprintDuration = mins;
+  document.querySelectorAll('.sprint-dur-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('customSprintMins').value = '';
+  if (!sprintInterval) {
+    document.getElementById('sprintTimerDisplay').textContent = `${String(mins).padStart(2,'0')}:00`;
+    updateProgressBar(100);
+  }
+}
+
+function setCustomSprintDur(input) {
+  const mins = parseInt(input.value);
+  if (!mins || mins < 1) return;
+  sprintDuration = mins;
+  document.querySelectorAll('.sprint-dur-btn').forEach(b => b.classList.remove('active'));
+  if (!sprintInterval) {
+    const m = Math.floor(mins);
+    document.getElementById('sprintTimerDisplay').textContent = `${String(m).padStart(2,'0')}:00`;
+    updateProgressBar(100);
+  }
+}
+
+function startSprint() {
+  sprintTask = document.getElementById('sprintTaskInput').value.trim();
+  sprintTotal = sprintDuration * 60;
+  sprintRemaining = sprintTotal;
+  sprintPaused = false;
+
+  document.getElementById('sprintSetup').style.display = 'none';
+  document.getElementById('sprintControls').style.display = 'flex';
+  document.getElementById('sprintPauseBtn').textContent = '⏸ Pause';
+
+  const taskDisplay = document.getElementById('sprintTaskDisplay');
+  if (sprintTask) {
+    taskDisplay.textContent = `"${sprintTask}"`;
+    taskDisplay.className = 'sprint-task-display has-task';
+  } else {
+    taskDisplay.textContent = 'Deep work sprint in progress...';
+    taskDisplay.className = 'sprint-task-display';
+  }
+
+  document.getElementById('pressureFab').classList.add('sprint-active');
+  sprintInterval = setInterval(tickSprint, 1000);
+  tickSprint();
+}
+
+function tickSprint() {
+  if (sprintPaused) return;
+  sprintRemaining--;
+  const m = Math.floor(sprintRemaining / 60);
+  const s = sprintRemaining % 60;
+  const display = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  document.getElementById('sprintTimerDisplay').textContent = display;
+  document.getElementById('fabCountdown').textContent = display;
+
+  const pct = (sprintRemaining / sprintTotal) * 100;
+  updateProgressBar(pct);
+
+  const timerEl = document.getElementById('sprintTimerDisplay');
+  timerEl.classList.toggle('urgent', sprintRemaining <= 60);
+
+  if (sprintRemaining <= 0) {
+    sprintDone();
+  }
+}
+
+function updateProgressBar(pct) {
+  document.getElementById('sprintProgressFill').style.width = pct + '%';
+}
+
+function toggleSprintPause() {
+  sprintPaused = !sprintPaused;
+  document.getElementById('sprintPauseBtn').textContent = sprintPaused ? '▶ Resume' : '⏸ Pause';
+}
+
+function stopSprint() {
+  if (!confirm('Stop this sprint?')) return;
+  clearInterval(sprintInterval); sprintInterval = null;
+  resetSprintUI();
+}
+
+// ── ALARM SOUND (Web Audio API — no file needed) ─────────────
+function playAlarm() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [523, 659, 784, 1047]; // C5 E5 G5 C6 — victory chord sequence
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.18);
+      gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.18);
+      gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + i * 0.18 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.5);
+      osc.start(ctx.currentTime + i * 0.18);
+      osc.stop(ctx.currentTime + i * 0.18 + 0.5);
+    });
+    // Final long tone
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.connect(gain2); gain2.connect(ctx.destination);
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1047, ctx.currentTime + 0.8);
+    gain2.gain.setValueAtTime(0.5, ctx.currentTime + 0.8);
+    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.2);
+    osc2.start(ctx.currentTime + 0.8);
+    osc2.stop(ctx.currentTime + 2.2);
+  } catch(e) { console.warn('Audio not supported', e); }
+}
+
+// ── BROWSER NOTIFICATION ─────────────────────────────────────
+async function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    await Notification.requestPermission();
+  }
+}
+
+function sendNotification(title, body) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, {
+      body,
+      icon: '/favicon.png',
+      badge: '/favicon.png',
+      tag: 'sprint-done',
+      requireInteraction: true,
+    });
+  }
+}
+
+function sprintDone() {
+  clearInterval(sprintInterval); sprintInterval = null;
+  document.getElementById('sprintTimerDisplay').textContent = '🎉 DONE!';
+  document.getElementById('sprintTimerDisplay').classList.remove('urgent');
+  updateProgressBar(0);
+  document.getElementById('pressureFab').classList.remove('sprint-active');
+
+  // Play alarm
+  playAlarm();
+
+  // Browser notification
+  const taskLabel = sprintTask || 'Focus sprint';
+  sendNotification('⚡ Sprint Complete!', `${taskLabel} — ${sprintDuration} minutes done. How did it go?`);
+
+  // Close pressure panel so user can see the app
+  ppOpen = false;
+  document.getElementById('pressurePanel').classList.remove('open');
+  document.getElementById('pressureOverlay').classList.remove('open');
+
+  // Close pressure panel so user can see the app
+  ppOpen = false;
+  document.getElementById('pressurePanel').classList.remove('open');
+  document.getElementById('pressureOverlay').classList.remove('open');
+
+  // Show review modal after short delay
+  setTimeout(() => openSprintReview(), 400);
+}
+
+// ── SPRINT REVIEW ────────────────────────────────────────────
+let sprintReviewCat = null;
+
+function openSprintReview() {
+  sprintReviewCat = null;
+  const name = sprintTask || 'Sprint session';
+  document.getElementById('sprintReviewTask').textContent = name;
+  document.getElementById('sprintReviewDur').textContent = `${sprintDuration} min sprint`;
+  document.getElementById('sprintReviewSub').textContent = 'How did the sprint go? Choose a category to log it.';
+  document.getElementById('sprintReviewName').value = name;
+  document.getElementById('sprintReviewSaveBtn').disabled = true;
+  document.getElementById('sprintReviewSaveBtn').style.opacity = '0.5';
+
+  // Build category grid with honest labels
+  const cats = [
+    { key:'productive',     emoji:'✅', label:'Got it done',      sub:'Fully productive',     cls:'cat-productive' },
+    { key:'necessity',      emoji:'🔧', label:'Had to do it',     sub:'Necessary work',        cls:'cat-necessity' },
+    { key:'timepass',       emoji:'😴', label:'Mostly distracted',sub:'Kept losing focus',     cls:'cat-timepass' },
+    { key:'procrastinating',emoji:'😬', label:'Avoided the task', sub:'Did something else',    cls:'cat-procrastinating' },
+    { key:'waste',          emoji:'🗑️', label:'Wasted it',        sub:'Didn\'t do the work',   cls:'cat-waste' },
+    { key:'emergency',      emoji:'🚨', label:'Emergency came up',sub:'Unavoidable interrupt', cls:'cat-emergency' },
+  ];
+
+  document.getElementById('sprintCatGrid').innerHTML = cats.map(c => `
+    <button onclick="selectSprintCat('${c.key}',this)"
+      style="padding:10px 8px;border-radius:10px;border:2px solid var(--border);background:transparent;cursor:pointer;text-align:left;transition:all 0.18s;">
+      <div style="font-size:18px;margin-bottom:3px;">${c.emoji}</div>
+      <div style="font-size:12px;font-weight:600;color:var(--text);">${c.label}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:1px;">${c.sub}</div>
+    </button>`).join('');
+
+  document.getElementById('sprintReviewModal').classList.add('open');
+}
+
+function selectSprintCat(cat, btn) {
+  sprintReviewCat = cat;
+  // Reset all buttons
+  document.querySelectorAll('#sprintCatGrid button').forEach(b => {
+    b.style.borderColor = 'var(--border)';
+    b.style.background = 'transparent';
+  });
+  // Highlight selected
+  const colors = {
+    productive:'var(--accent4)', necessity:'#6090e0', timepass:'var(--muted)',
+    procrastinating:'#c060c0', waste:'var(--accent3)', emergency:'#e09040'
+  };
+  btn.style.borderColor = colors[cat] || 'var(--accent)';
+  btn.style.background = 'var(--surface)';
+
+  const saveBtn = document.getElementById('sprintReviewSaveBtn');
+  saveBtn.disabled = false;
+  saveBtn.style.opacity = '1';
+}
+
+async function saveSprintReview() {
+  if (!sprintReviewCat) return;
+  const name = document.getElementById('sprintReviewName').value.trim() || sprintTask || 'Sprint session';
+  const today = toLocalDate(new Date());
+
+  try {
+    const res = await api('/api/daily-tasks', {
+      method: 'POST',
+      body: { date: today, name, duration: sprintDuration, category: sprintReviewCat }
+    });
+    const [y,m] = today.split('-').map(Number);
+    const key = cacheKey(y, m-1);
+    if (!cache[key]) cache[key] = { habitRows: [], taskRows: [] };
+    cache[key].taskRows.push(res.task);
+    renderCalendar(); renderStats();
+  } catch(e) { console.warn('Could not log sprint task', e); }
+
+  closeSprintReview(true);
+}
+
+function closeSprintReview(logged) {
+  document.getElementById('sprintReviewModal').classList.remove('open');
+  sprintReviewCat = null;
+  resetSprintUI();
+}
+document.getElementById('sprintReviewModal').addEventListener('click', function(e) {
+  if (e.target === this) closeSprintReview(false);
+});
+
+function resetSprintUI() {
+  document.getElementById('sprintSetup').style.display = 'block';
+  document.getElementById('sprintControls').style.display = 'none';
+  document.getElementById('sprintTaskDisplay').textContent = '';
+  document.getElementById('sprintTaskDisplay').className = 'sprint-task-display';
+  document.getElementById('sprintTimerDisplay').textContent = `${String(sprintDuration).padStart(2,'0')}:00`;
+  document.getElementById('sprintTimerDisplay').classList.remove('urgent');
+  document.getElementById('pressureFab').classList.remove('sprint-active');
+  document.getElementById('fabCountdown').textContent = '';
+  document.getElementById('customSprintMins').value = '';
+  updateProgressBar(100);
+  sprintPaused = false; sprintRemaining = 0;
+}
+
+// ── FOCUS TASK ───────────────────────────────────────────────
+const FOCUS_KEY = 'ht-focus-task';
+
+function saveFocusTask() {
+  const text = document.getElementById('focusTaskInput').value.trim();
+  if (!text) { alert('Enter your focus task.'); return; }
+  const today = toLocalDate(new Date());
+  const data = { text, date: today, done: false };
+  localStorage.setItem(FOCUS_KEY, JSON.stringify(data));
+  document.getElementById('focusTaskInput').value = '';
+  renderFocusTask();
+}
+
+function renderFocusTask() {
+  const raw = localStorage.getItem(FOCUS_KEY);
+  const display = document.getElementById('focusTaskDisplay');
+  if (!raw) { display.classList.remove('show'); return; }
+  const data = JSON.parse(raw);
+  const today = toLocalDate(new Date());
+  // Clear if it's from a previous day and done
+  if (data.date !== today && data.done) { localStorage.removeItem(FOCUS_KEY); display.classList.remove('show'); return; }
+  display.classList.add('show');
+  document.getElementById('focusTaskText').textContent = data.text;
+  document.getElementById('focusTaskDate').textContent = data.date === today ? 'Today' : data.date;
+  const check = document.getElementById('focusDoneCheck');
+  check.classList.toggle('checked', !!data.done);
+  check.innerHTML = data.done ? '<svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4L3.5 6.5L9 1" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '';
+}
+
+function toggleFocusDone() {
+  const raw = localStorage.getItem(FOCUS_KEY);
+  if (!raw) return;
+  const data = JSON.parse(raw);
+  data.done = !data.done;
+  localStorage.setItem(FOCUS_KEY, JSON.stringify(data));
+  renderFocusTask();
+}
+
+// ── INSIGHTS ─────────────────────────────────────────────────
+function renderInsights() {
+  const el = document.getElementById('insightsContent');
+  // Gather data from cache
+  let allDates = [];
+  Object.values(cache).forEach(c => {
+    const dates = new Set([...c.habitRows.map(r=>r.date),...c.taskRows.map(t=>t.date)]);
+    allDates.push(...dates);
+  });
+  allDates = [...new Set(allDates)].sort().slice(-30); // last 30 days
+
+  if (!allDates.length) {
+    el.innerHTML = `<div class="insight-pattern-card"><div class="ipc-body" style="text-align:center;padding:10px 0;">No data yet. Start tracking to see insights.</div></div>`;
+    return;
+  }
+
+  // Calc streaks
+  let streak = 0, best = 0, cur = 0;
+  allDates.forEach(d => { const p = getPct(d); if(p !== null && p >= 80) { cur++; if(cur>best) best=cur; } else cur=0; });
+  const today = toLocalDate(new Date()); const todayPct = getPct(today);
+
+  // Neg pattern: days with >40% wasted time
+  let badDays = 0, goodDays = 0;
+  allDates.forEach(d => {
+    const { negPct, total } = getDayNegPct(d);
+    if (total > 0) { if (negPct >= 40) badDays++; else goodDays++; }
+  });
+
+  // Best day of week
+  const dowTotals = Array(7).fill(0), dowCounts = Array(7).fill(0);
+  allDates.forEach(d => {
+    const p = getPct(d); if(p === null) return;
+    const dow = new Date(d).getDay();
+    dowTotals[dow] += p; dowCounts[dow]++;
+  });
+  const dowAvgs = dowTotals.map((t,i) => dowCounts[i] ? Math.round(t/dowCounts[i]) : null);
+  const bestDow = dowAvgs.indexOf(Math.max(...dowAvgs.filter(x=>x!==null)));
+  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  // Negligence count
+  let negligences = 0;
+  Object.values(cache).forEach(c => c.habitRows.forEach(r => { if(r.miss_type==='negligence') negligences++; }));
+
+  // Task category breakdown
+  let totalMins = 0, negMins = 0;
+  Object.values(cache).forEach(c => c.taskRows.forEach(t => {
+    totalMins += t.duration;
+    if (NEG_CATS.includes(t.category)) negMins += t.duration;
+  }));
+  const negPctOverall = totalMins > 0 ? Math.round(negMins/totalMins*100) : 0;
+
+  // Pattern detection
+  let pattern = '', patternDesc = '';
+  if (negPctOverall >= 40) { pattern = '⚠️ Deadline Brain'; patternDesc = 'High wasted time suggests you may be waiting for urgency before starting. Try artificial deadlines and 25-min pressure sprints.'; }
+  else if (negligences >= 5) { pattern = '🚩 Discipline Gap'; patternDesc = 'Multiple negligences detected. Your habits are set but follow-through is breaking down. Identify the top 2 habits you keep skipping.'; }
+  else if (best >= 7) { pattern = '🔥 Momentum Builder'; patternDesc = 'Strong streaks show you perform well in runs. Protect your streak — one bad day won\'t break you, but two in a row often do.'; }
+  else { pattern = '📈 Building Consistency'; patternDesc = 'You\'re in the early stages of building the system. Focus on showing up even at 50% — incomplete habits still count.'; }
+
+  el.innerHTML = `
+    <div class="insight-pattern-card">
+      <div class="ipc-header"><div class="ipc-icon">🧬</div><div class="ipc-title">Your Pattern: ${pattern}</div></div>
+      <div class="ipc-body">${patternDesc}</div>
+    </div>
+    <div class="insight-pattern-card">
+      <div class="ipc-header"><div class="ipc-icon">📅</div><div class="ipc-title">Best Day of Week</div></div>
+      <div class="ipc-body">You perform best on <strong>${DAYS[bestDow]}</strong>. Use this insight to schedule your hardest tasks.</div>
+      <div class="ipc-stat">${dowAvgs[bestDow]}% avg habit completion</div>
+    </div>
+    <div class="insight-pattern-card">
+      <div class="ipc-header"><div class="ipc-icon">⏱️</div><div class="ipc-title">Time Quality (30 days)</div></div>
+      <div class="ipc-body">${negPctOverall < 20 ? '✅ Strong time discipline.' : negPctOverall < 40 ? '⚠️ Room to reduce wasted time.' : '🔴 High wasted time detected.'}</div>
+      <div class="ipc-stat">${negPctOverall}% wasted · ${100-negPctOverall}% productive+neutral</div>
+    </div>
+    <div class="insight-pattern-card">
+      <div class="ipc-header"><div class="ipc-icon">🏆</div><div class="ipc-title">Habit Streaks</div></div>
+      <div class="ipc-body">Best streak of <strong>${best} days</strong> at ≥80% completion. ${todayPct !== null ? `Today you're at ${todayPct}%.` : 'No data for today yet.'}</div>
+      <div class="ipc-stat">${goodDays} strong days · ${badDays} rough days (last 30)</div>
+    </div>
+    <div class="insight-pattern-card" style="border-color:var(--accent);">
+      <div class="ipc-header"><div class="ipc-icon">⚡</div><div class="ipc-title">Recommendation</div></div>
+      <div class="ipc-body">Set one focus task every morning. Use a 25-min sprint to start it — your brain needs a trigger, not motivation.</div>
+    </div>`;
+}
+
+// ── CHECK-IN ─────────────────────────────────────────────────
+const CHECKIN_RESPONSES = {
+  overloaded: {
+    title: 'You\'re overloaded',
+    text: 'Step 1: write down everything in your head right now. Step 2: pick only one thing. Everything else waits. Your brain is trying to hold too many open loops — that\'s the source of the pressure. Close the loops by deciding, not by doing everything.',
+  },
+  procrastinating: {
+    title: 'You\'re avoiding something',
+    text: 'The task feels heavier than it is. Start ugly — open the file, write one sentence, make one call. Five minutes of bad start beats zero minutes of perfect start. Set a 10-min sprint right now just to begin.',
+  },
+  irritable: {
+    title: 'Low patience mode',
+    text: 'This is mental overload spilling outward. You\'re not actually angry at the thing — you\'re depleted. Drink water, take 5 slow breaths, move for 2 minutes. Then return. The irritation is a signal, not the truth.',
+  },
+  unfocused: {
+    title: 'Scattered attention',
+    text: 'Your attention is fragmented. Close all tabs except one. Put the phone face-down. Set a 25-min sprint with one specific task. Scattered starts feel unproductive but compound quickly once a single thread is pulled.',
+  },
+  good: {
+    title: 'Solid state',
+    text: 'Good. Now protect it. Set your one focus task for today and start a sprint before the momentum fades. Consistent good states come from systems, not moods.',
+  },
+};
+
+function selectCheckin(btn, type) {
+  document.querySelectorAll('.checkin-opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const r = CHECKIN_RESPONSES[type];
+  const el = document.getElementById('checkinResponse');
+  el.innerHTML = `<strong style="color:var(--text);display:block;margin-bottom:6px;">${r.title}</strong>${r.text}`;
+  el.classList.add('show');
+}
+</script>
+<script>
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
 </script>
 </body>
 </html>
