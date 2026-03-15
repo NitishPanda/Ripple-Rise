@@ -36,7 +36,7 @@ export default async (request) => {
   if (request.method === 'GET') {
     const { data } = await supa(url, key, `user_preferences?user_id=eq.${user.id}`);
     const prefs = Array.isArray(data) && data.length ? data[0] : { theme: 'dark' };
-    return json({ theme: prefs.theme });
+    return json({ theme: prefs.theme, vapid_key: Deno.env.get('VAPID_PUBLIC_KEY') || '' });
   }
 
   // POST — save preferences
