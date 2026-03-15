@@ -1,22 +1,24 @@
 {
-  "name": "Habit Tracker",
-  "short_name": "Habits",
-  "description": "Track your discipline. Own your day.",
+  "name": "Vyoraa",
+  "short_name": "Vyoraa",
+  "description": "Rise through discipline. Every single day.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0f",
-  "theme_color": "#f0c040",
+  "background_color": "#0d0b14",
+  "theme_color": "#c820b8",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/favicon-192.png",
+      "src": "/favicon-192-pwa.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/favicon.png",
+      "src": "/favicon-512-pwa.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
